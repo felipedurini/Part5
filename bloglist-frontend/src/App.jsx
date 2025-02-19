@@ -96,7 +96,7 @@ const App = () => {
       setAuthor('')
       setUrl('')
       setAddedMessage(
-        `Added ${title}`
+        `Added ${returnedBlog.title}`
       )
 
       setTimeout(() => {

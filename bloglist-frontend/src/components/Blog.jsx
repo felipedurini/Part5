@@ -38,7 +38,7 @@ const Blog = ({ blog, handleLike, handleDelete, user, updateBlog }) => {
           <div>
             <p data-testid="likes">Likes {blog.likes} <span><button onClick={handleLike}>Like</button></span></p>
           </div>
-          <div>{blog.user.name}</div>
+          <div>Created by {blog.user.name}</div>
         </>
       )}
 
