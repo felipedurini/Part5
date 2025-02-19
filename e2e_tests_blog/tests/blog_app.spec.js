@@ -17,7 +17,7 @@ describe('Blog app', () => {
 
     test('front page can be opened', async ({ page }) => {
 
-        const locator = await page.getByText('blogs')
+        const locator = await page.getByText('log in')
         await expect(locator).toBeVisible()
     })
 
@@ -104,7 +104,7 @@ describe('Blog app', () => {
                 await expect(page.getByRole('button', { name: 'Delete' })).not.toBeVisible()
             })
 
-            test.only('blogs are ordered by likes', async ({ page, request }) => {
+            test('blogs are ordered by likes', async ({ page, request }) => {
                 await page.getByRole('button', { name: 'New Blog' }).click()
                 await page.getByTestId('title').fill('blog 2')
                 await page.getByTestId('author').fill('Juan Perez')
