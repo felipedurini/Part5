@@ -58,8 +58,9 @@ describe('Blog app', () => {
             await page.getByTestId('author').fill('Juan Perez')
             await page.getByTestId('url').fill('example.com')
             await page.getByRole('button', { name: 'save' }).click()
-            await expect(page.getByText('another blog by playwright')).toBeVisible()
+            await expect(page.getByTestId('blog').getByText('another blog by playwright')).toBeVisible()
         })
+        
         describe('and a blog exists', () => {
             beforeEach(async ({ page }) => {
                 await page.getByRole('button', { name: 'New Blog' }).click()
@@ -69,6 +70,13 @@ describe('Blog app', () => {
                 await page.getByRole('button', { name: 'save' }).click()
             })
 
+            test(`blog doesn't show all attributes by defect`, async ({ page }) => {
+                await expect(page.getByRole('button', { name: 'Like' })).not.toBeVisible()
+                await page.getByRole('button', { name: 'show attributes' }).click()
+                await expect(page.getByRole('button', { name: 'Like' })).not.toBeVisible()
+                await expect(page.getByText('Created by')).toBeVisible()
+            })
+            
             test('a blog can be edited (show attributes and likes work)', async ({ page }) => {
                 await page.getByRole('button', { name: 'show attributes' }).click()
                 await expect(page.getByText('Like')).toBeVisible()
@@ -77,8 +85,9 @@ describe('Blog app', () => {
                 await expect(page.getByTestId('likes')).toHaveText(/1/)
             })
 
+
             test('a blog can be deleted', async ({ page }) => {
-                await expect(page.getByText('another blog by playwright')).toBeVisible()
+                await expect(page.getByTestId('blog').getByText('another blog by playwright')).toBeVisible()
 
                 await page.evaluate(() => {
                     window.confirm = () => true
@@ -86,7 +95,7 @@ describe('Blog app', () => {
 
                 await page.getByRole('button', { name: 'Delete' }).click()
 
-                await expect(page.getByText('another blog by playwright')).not.toBeVisible()
+                await expect(page.getByTestId('blog').getByText('another blog by playwright')).not.toBeVisible()
             })
 
             test('only creator can see Delete button', async ({ page, request }) => {
@@ -105,44 +114,50 @@ describe('Blog app', () => {
             })
 
             test('blogs are ordered by likes', async ({ page, request }) => {
+                await expect(page.getByTestId('blog').getByText('another blog by playwright')).toBeVisible()
+              
                 await page.getByRole('button', { name: 'New Blog' }).click()
                 await page.getByTestId('title').fill('blog 2')
                 await page.getByTestId('author').fill('Juan Perez')
                 await page.getByTestId('url').fill('example.com')
                 await page.getByRole('button', { name: 'save' }).click()
-
+              
                 await page.getByRole('button', { name: 'New Blog' }).click()
                 await page.getByTestId('title').fill('blog 3')
                 await page.getByTestId('author').fill('Juan Perez')
                 await page.getByTestId('url').fill('example.com')
                 await page.getByRole('button', { name: 'save' }).click()
-
+              
                 const blog2 = page.getByTestId('blog', { hasText: 'blog 2' })
-                await blog2.getByRole('button', { name: 'show attributes' }).click()
+                await blog2.getByRole('button', { name: 'show attributes' }).first().click()
                 await blog2.getByRole('button', { name: 'Like' }).click()
                 await blog2.getByRole('button', { name: 'hide attributes' }).click()
-
-
+              
                 const blog3 = page.getByTestId('blog', { hasText: 'blog 3' })
-                await blog3.getByRole('button', { name: 'show attributes' }).click()
+                await blog3.getByRole('button', { name: 'show attributes' }).first().click()
                 await blog3.getByRole('button', { name: 'Like' }).click()
                 await blog3.getByRole('button', { name: 'Like' }).click()
                 await blog3.getByRole('button', { name: 'hide attributes' }).click()
-
-
+              
+                await page.waitForTimeout(500)
                 const blogs = page.getByTestId('blog')
                 const count = await blogs.count()
                 const likes = []
                 for (let i = 0; i < count; i++) {
-                    const blog = blogs.nth(i)
-                    await blog.getByRole('button', { name: 'show attributes' }).click()
-                    const text = await blog.textContent()
-                    const match = text.match(/Likes\s*(\d+)/)
-                    likes.push(match ? Number(match[1]) : 0)
+                  const blog = blogs.nth(i)
+                  const showButton = blog.getByRole('button', { name: 'show attributes' })
+                  if (await showButton.isVisible()) {
+                    await showButton.click()
+                  }
+                  const text = await blog.textContent()
+                  const match = text.match(/Likes\s*(\d+)/)
+                  likes.push(match ? Number(match[1]) : 0)
                 }
                 const sortedLikes = [...likes].sort((a, b) => b - a)
                 expect(likes).toEqual(sortedLikes)
-            })
+              })
+              
+              
 
         })
     })
